@@ -1,7 +1,37 @@
 [
   {
-    "event_name": "landing_page_viewed",
-    "session_id": "e33540e0-06b4-46e2-ab3e-b1a5588a1215",
-    "timestamp": "2026-05-30T04:26:59.005Z"
+    "event_name": "resume_uploaded",
+    "properties": {
+      "fileType": "application/pdf",
+      "fileSize": 116488
+    },
+    "session_id": "1f7b7693-9c89-42be-8b20-46811050d8df",
+    "timestamp": "2026-05-30T08:28:40.558Z"
+  },
+  {
+    "event_name": "analysis_started",
+    "properties": {
+      "role": "Product Manager"
+    },
+    "session_id": "1f7b7693-9c89-42be-8b20-46811050d8df",
+    "timestamp": "2026-05-30T08:28:47.429Z"
+  },
+  {
+    "event_name": "analysis_completed",
+    "properties": {
+      "overallScore": 60,
+      "targetRole": "Product Manager"
+    },
+    "session_id": "1f7b7693-9c89-42be-8b20-46811050d8df",
+    "timestamp": "2026-05-30T08:29:01.863Z"
+  },
+  {
+    "event_name": "results_viewed",
+    "properties": {
+      "overallScore": 60,
+      "targetRole": "Product Manager"
+    },
+    "session_id": "1f7b7693-9c89-42be-8b20-46811050d8df",
+    "timestamp": "2026-05-30T08:29:01.939Z"
   }
 ]

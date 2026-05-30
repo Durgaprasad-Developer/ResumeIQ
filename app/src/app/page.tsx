@@ -102,7 +102,11 @@ export default function Home() {
         <AnalyzingScreen fileName={file?.name ?? ""} />
       )}
       {screen === "results" && results && (
-        <ResultsScreen data={results} targetRole={targetRole} onReset={handleReset} />
+        <ResultsScreen 
+          data={results} 
+          targetRole={targetRole} 
+          onReset={handleReset} 
+        />
       )}
     </main>
   );

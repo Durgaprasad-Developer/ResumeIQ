@@ -295,7 +295,6 @@ export default function ResultsScreen({ data, targetRole, onReset }: Props) {
             </div>
           </section>
         )}
-
         {/* Analyze another */}
         <div className="text-center pt-8 pb-10">
           <button
@@ -306,12 +305,12 @@ export default function ResultsScreen({ data, targetRole, onReset }: Props) {
             className="font-syne font-bold rounded-xl px-8 py-3 transition-all duration-150"
             style={{ background: "var(--rs-accent)", color: "var(--rs-black)", fontSize: "0.9rem" }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "var(--rs-accent-dark)";
               (e.currentTarget as HTMLButtonElement).style.transform = "translateY(-1px)";
+              (e.currentTarget as HTMLButtonElement).style.background = "var(--rs-accent-dark)";
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.background = "var(--rs-accent)";
               (e.currentTarget as HTMLButtonElement).style.transform = "none";
+              (e.currentTarget as HTMLButtonElement).style.background = "var(--rs-accent)";
             }}
           >
             Analyze Another Resume
