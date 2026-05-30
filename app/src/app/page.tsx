@@ -16,10 +16,12 @@ export default function Home() {
   const [error, setError] = useState<string>("");
   const [file, setFile] = useState<File | null>(null);
   const [targetRole, setTargetRole] = useState<string>("");
+  const [sessionId, setSessionId] = useState<string>("");
   const abortRef = useRef<AbortController | null>(null);
 
   useEffect(() => {
     track("landing_page_viewed");
+    setSessionId(crypto.randomUUID());
   }, []);
 
   // Landing screen calls this when file is dropped
@@ -42,6 +44,7 @@ export default function Home() {
     const formData = new FormData();
     formData.append("file", file);
     formData.append("role", role);
+    formData.append("sessionId", sessionId);
 
     try {
       const res = await fetch("/api/analyze", {
@@ -71,7 +74,7 @@ export default function Home() {
       setError("Network error. Please check your connection and try again.");
       setScreen("landing");
     }
-  }, [file]);
+  }, [file, sessionId]);
 
   const handleReset = useCallback(() => {
     abortRef.current?.abort();

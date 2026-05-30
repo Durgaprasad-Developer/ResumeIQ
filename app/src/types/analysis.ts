@@ -1,32 +1,23 @@
-export interface Readiness {
-  startup: number;
-  product: number;
-  mnc: number;
-}
-
-export interface MissingEvidence {
-  context: string;
-  missing: string[];
-}
-
 export interface SectionGap {
   expected: string[];
   found: string[];
   missing: string[];
 }
 
-export interface Addition {
-  item: string;
-  scoreImpact: number;
+export interface ActionableFix {
+  context: string;
+  problem: string;
+  whyItMatters: string;
+  whatToAdd: string;
+  example: string;
 }
 
 export interface AnalysisResult {
   overallScore: number;
-  readiness: Readiness;
+  potentialImprovement: "Low" | "Moderate" | "High" | "Significant";
   missingItems: string[];
-  missingEvidence: MissingEvidence[];
   sectionAnalysis: SectionGap;
-  topAdditions: Addition[];
+  highestImpactFixes: ActionableFix[];
 }
 
 export interface AnalysisAPIResponse {
@@ -40,4 +31,3 @@ export interface AnalysisAPIError {
 }
 
 export type APIResponse = AnalysisAPIResponse | AnalysisAPIError;
-

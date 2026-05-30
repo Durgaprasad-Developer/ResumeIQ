@@ -33,5 +33,56 @@
     },
     "session_id": "1f7b7693-9c89-42be-8b20-46811050d8df",
     "timestamp": "2026-05-30T08:29:01.939Z"
+  },
+  {
+    "event_name": "landing_page_viewed",
+    "session_id": "1516fe6c-32e5-4825-a2ed-f39f7db7a717",
+    "timestamp": "2026-05-30T08:52:44.701Z"
+  },
+  {
+    "event_name": "landing_page_viewed",
+    "session_id": "6e762c36-5c47-42f3-a96f-5eab753911b5",
+    "timestamp": "2026-05-30T09:26:05.432Z"
+  },
+  {
+    "event_name": "resume_upload_started",
+    "session_id": "6e762c36-5c47-42f3-a96f-5eab753911b5",
+    "timestamp": "2026-05-30T09:26:06.408Z"
+  },
+  {
+    "event_name": "resume_upload_started",
+    "session_id": "6e762c36-5c47-42f3-a96f-5eab753911b5",
+    "timestamp": "2026-05-30T09:26:06.409Z"
+  },
+  {
+    "event_name": "resume_uploaded",
+    "properties": {
+      "fileType": "application/pdf",
+      "fileSize": 116488
+    },
+    "session_id": "6e762c36-5c47-42f3-a96f-5eab753911b5",
+    "timestamp": "2026-05-30T09:26:09.257Z"
+  },
+  {
+    "event_name": "analysis_started",
+    "properties": {
+      "role": "Full Stack Developer"
+    },
+    "session_id": "6e762c36-5c47-42f3-a96f-5eab753911b5",
+    "timestamp": "2026-05-30T09:26:13.834Z"
+  },
+  {
+    "event_name": "analysis_completed",
+    "properties": {
+      "overallScore": 80,
+      "targetRole": "Full Stack Developer"
+    },
+    "session_id": "6e762c36-5c47-42f3-a96f-5eab753911b5",
+    "timestamp": "2026-05-30T09:26:51.254Z"
+  },
+  {
+    "event_name": "results_viewed",
+    "session_id": "6e762c36-5c47-42f3-a96f-5eab753911b5",
+    "timestamp": "2026-05-30T09:26:51.321Z"
   }
 ]

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { APIResponse, AnalysisResult } from "@/types/analysis";
 
-/* ─── Constants ────────────────────────────────────────────────── */
+/* ─── Constants & State ────────────────────────────────────────── */
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TYPES = [
   "application/pdf",
@@ -10,6 +10,9 @@ const ALLOWED_TYPES = [
   "application/msword",
 ];
 const ALLOWED_EXTENSIONS = [".pdf", ".docx", ".doc"];
+
+// Simple in-memory cache for the session (cleared on cold starts)
+const analysisCache = new Map<string, AnalysisResult>();
 
 /* ─── Text extractors ────────────────────────────────────────── */
 async function extractFromPDF(buffer: Buffer): Promise<string> {
@@ -29,15 +32,20 @@ async function extractFromDOCX(buffer: Buffer): Promise<string> {
 function buildPrompt(resumeText: string, role: string): string {
   const trimmed = resumeText.substring(0, 6000);
 
-  return `You are a senior technical recruiter hiring for a ${role} position. Your task is to evaluate the resume below based on expectations for a ${role} candidate, and return a structured JSON response identifying exactly what is missing and what needs to be added for the candidate to be shortlisted for this specific role.
-Do not return Markdown, explanations, or text outside the JSON object.
+  return `You are a senior technical career coach helping a candidate improve their resume for a ${role} position.
+Your job is to identify flaws and provide HIGHLY ACTIONABLE, evidence-based improvements.
+
+CRITICAL RULE (The 30-Minute Rule):
+Every single fix or recommendation you provide MUST be something the user can actually accomplish in the next 30 minutes by reframing or elaborating on their existing experience.
+DO NOT tell them to "Add Product Management Experience" or "Get an AWS Certification" if they do not already have it. 
+INSTEAD, tell them how to reframe their existing projects to highlight leadership, metrics, or technical depth.
 
 ANALYSIS RULES:
-1. "readiness" represents the estimated shortlisting probability (0-100) for different company tiers.
-2. "missingItems" should be a list of high-level missing sections (e.g. "GitHub Link", "Technical Skills Section", "Certifications").
-3. "missingEvidence" identifies specific claims the user made (e.g. "Built AI Chatbot") and lists exactly what evidence a recruiter would look for but cannot find (e.g. "User count", "Accuracy metrics").
+1. "overallScore" is an integer (0-100) reflecting their current standing for this role.
+2. "potentialImprovement" is a strict string enum ("Low", "Moderate", "High", "Significant") based on how much impact the fixes will have.
+3. "missingItems" is a short array of high-level missing sections (e.g. "GitHub Link", "Summary").
 4. "sectionAnalysis" compares what a standard resume should have ("expected"), what this resume has ("found"), and what is lacking ("missing").
-5. "topAdditions" provides exact, concrete content suggestions the user should add to dramatically improve their score. "scoreImpact" is an integer representing how many points their overall score will increase if they add it. Ensure Current Score + Total Impact <= 100.
+5. "highestImpactFixes" is an array of exactly 3 to 4 actionable fixes following the 30-Minute Rule.
 
 RESUME TEXT:
 ${trimmed}
@@ -45,29 +53,20 @@ ${trimmed}
 Return EXACTLY this JSON structure:
 {
   "overallScore": <integer 0-100>,
-  "readiness": {
-    "startup": <integer 0-100>,
-    "product": <integer 0-100>,
-    "mnc": <integer 0-100>
-  },
-  "missingItems": [
-    "<string>"
-  ],
-  "missingEvidence": [
-    {
-      "context": "<e.g., 'Project: AI Chatbot'>",
-      "missing": ["<e.g., 'Impact metrics'>", "<e.g., 'Scale'>"]
-    }
-  ],
+  "potentialImprovement": "<'Low' | 'Moderate' | 'High' | 'Significant'>",
+  "missingItems": ["<string>"],
   "sectionAnalysis": {
     "expected": ["<string>"],
     "found": ["<string>"],
     "missing": ["<string>"]
   },
-  "topAdditions": [
+  "highestImpactFixes": [
     {
-      "item": "<e.g., 'Add Project Metrics'>",
-      "scoreImpact": <integer>
+      "context": "<e.g., 'Project: SyncStream' or 'Experience: Company XYZ'>",
+      "problem": "<e.g., 'No measurable outcome'>",
+      "whyItMatters": "<e.g., 'Recruiters use scale to judge complexity.'>",
+      "whatToAdd": "<e.g., 'Mention records processed or users served.'>",
+      "example": "<e.g., 'Built an AI-powered analyzer using Next.js that processes 500+ resumes per day.'>"
     }
   ]
 }`;
@@ -92,24 +91,7 @@ function validateAndClamp(data: unknown): AnalysisResult {
     return arr.filter((x): x is string => typeof x === "string").slice(0, 10);
   };
 
-  const rawReadiness = typeof raw.readiness === "object" && raw.readiness !== null ? (raw.readiness as Record<string, unknown>) : {};
-  const readiness = {
-    startup: clamp(rawReadiness.startup),
-    product: clamp(rawReadiness.product),
-    mnc: clamp(rawReadiness.mnc),
-  };
-
   const missingItems = ensureStringArray(raw.missingItems, ["Technical Details", "Impact Metrics"]);
-
-  const missingEvidence = Array.isArray(raw.missingEvidence)
-    ? raw.missingEvidence
-        .filter((ev): ev is Record<string, unknown> => typeof ev === "object" && ev !== null)
-        .map((ev) => ({
-          context: typeof ev.context === "string" ? ev.context : "Resume Claim",
-          missing: ensureStringArray(ev.missing, ["Metrics", "Context"]),
-        }))
-        .slice(0, 5)
-    : [];
 
   const rawSection = typeof raw.sectionAnalysis === "object" && raw.sectionAnalysis !== null ? (raw.sectionAnalysis as Record<string, unknown>) : {};
   const sectionAnalysis = {
@@ -118,23 +100,31 @@ function validateAndClamp(data: unknown): AnalysisResult {
     missing: ensureStringArray(rawSection.missing, ["Projects", "Skills"]),
   };
 
-  const topAdditions = Array.isArray(raw.topAdditions)
-    ? raw.topAdditions
-        .filter((add): add is Record<string, unknown> => typeof add === "object" && add !== null)
-        .map((add) => ({
-          item: typeof add.item === "string" ? add.item : "Add details",
-          scoreImpact: clamp(add.scoreImpact),
+  const highestImpactFixes = Array.isArray(raw.highestImpactFixes)
+    ? raw.highestImpactFixes
+        .filter((fix): fix is Record<string, unknown> => typeof fix === "object" && fix !== null)
+        .map((fix) => ({
+          context: typeof fix.context === "string" ? fix.context : "Resume Claim",
+          problem: typeof fix.problem === "string" ? fix.problem : "Lacks detail",
+          whyItMatters: typeof fix.whyItMatters === "string" ? fix.whyItMatters : "Recruiters need evidence of scale.",
+          whatToAdd: typeof fix.whatToAdd === "string" ? fix.whatToAdd : "Add specific metrics.",
+          example: typeof fix.example === "string" ? fix.example : "Improved system performance by 20%.",
         }))
         .slice(0, 5)
     : [];
 
+  const allowedImprovements = ["Low", "Moderate", "High", "Significant"];
+  let potentialImprovement = typeof raw.potentialImprovement === "string" ? raw.potentialImprovement : "High";
+  if (!allowedImprovements.includes(potentialImprovement)) {
+    potentialImprovement = "High";
+  }
+
   return {
     overallScore: clamp(raw.overallScore),
-    readiness,
+    potentialImprovement: potentialImprovement as "Low" | "Moderate" | "High" | "Significant",
     missingItems,
-    missingEvidence,
     sectionAnalysis,
-    topAdditions,
+    highestImpactFixes,
   };
 }
 
@@ -213,6 +203,7 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const file = formData.get("file") as File | null;
     const role = (formData.get("role") as string) || "Software Engineer";
+    const sessionId = formData.get("sessionId") as string | null;
 
     if (!file) {
       return NextResponse.json<APIResponse>(
@@ -226,6 +217,18 @@ export async function POST(req: NextRequest) {
         { success: false, error: "Maximum file size is 5MB." },
         { status: 413 }
       );
+    }
+
+    // ── Check Cache ──
+    if (sessionId) {
+      const cacheKey = `${sessionId}-${role}-${file.size}-${file.name}`;
+      if (analysisCache.has(cacheKey)) {
+        console.log(`[/api/analyze] Serving result from cache for ${cacheKey}`);
+        return NextResponse.json<APIResponse>({
+          success: true,
+          data: analysisCache.get(cacheKey)!,
+        });
+      }
     }
 
     const popResult = file.name.split(".").pop();
@@ -336,6 +339,12 @@ export async function POST(req: NextRequest) {
         { success: false, error: "Failed to compile analysis report structure." },
         { status: 500 }
       );
+    }
+
+    // ── Cache Result ──
+    if (sessionId) {
+      const cacheKey = `${sessionId}-${role}-${file.size}-${file.name}`;
+      analysisCache.set(cacheKey, analysisResult);
     }
 
     return NextResponse.json<APIResponse>({
