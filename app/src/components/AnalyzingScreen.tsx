@@ -22,14 +22,23 @@ export default function AnalyzingScreen({ fileName }: Props) {
     "pending",
     "pending",
   ]);
-  const [subText, setSubText] = useState("Reading document…");
+  const [subText, setSubText] = useState("Reading document");
+  const [dots, setDots] = useState("");
+
+  // Continuous dot animation so it never looks frozen
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? "" : prev + "."));
+    }, 400);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const subtexts = [
-      "Reading document…",
-      "Running AI analysis…",
-      "Generating scores…",
-      "Building recommendations…",
+      "Reading document",
+      "Running AI analysis",
+      "Generating scores",
+      "Building recommendations",
     ];
 
     const timings = [0, 1200, 2600, 4000];
@@ -103,10 +112,11 @@ export default function AnalyzingScreen({ fileName }: Props) {
         </div>
         <div
           id="analyzing-sub"
-          className="font-mono text-sm mb-10 transition-all duration-300"
+          className="font-mono text-sm mb-10 transition-all duration-300 flex items-center justify-center gap-1"
           style={{ color: "rgba(250,250,248,0.4)" }}
         >
-          {subText}
+          <span>{subText}</span>
+          <span className="w-4 text-left">{dots}</span>
         </div>
 
         {/* File name */}

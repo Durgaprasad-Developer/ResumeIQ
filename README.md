@@ -27,9 +27,9 @@ ResumeIQ acts as your **Resume Round Clearance Assistant**.
 ## ✨ Core Capabilities
 
 - 🎯 **Role-Based Benchmarking**: Dynamic AI evaluation anchored against industry expectations for your specified target role.
-- 📊 **Probability Tiers**: Predicts your shortlisting readiness for Startups, Product Companies, and MNCs.
-- 🔍 **Missing Evidence Detection**: Maps your project claims (e.g., "Built an AI Agent") against recruiter expectations (e.g., "Missing latency metrics, Missing deployment scale").
-- 📈 **Score Impact Calculator**: Identifies the highest-ROI additions to your resume and calculates their exact score impact.
+- 💡 **Evidence-Based Coaching**: Replaces arbitrary scores with actionable, structured fixes mapped directly to your existing claims.
+- ⏱️ **The 30-Minute Rule**: The AI is strictly constrained to only suggest framing/content improvements you can execute immediately, rather than suggesting you acquire new life experiences.
+- 📉 **Gap Analysis**: Compares the expected structural sections for your target role against what was actually found.
 - ⚡ **Multi-Model Inference Fallback**: Primary inference runs on **NVIDIA NIM (Llama 3.3 70B)** with zero-latency fallback to **Google Gemini 2.0 Flash**, ensuring 100% uptime.
 
 ## 📐 System Architecture
