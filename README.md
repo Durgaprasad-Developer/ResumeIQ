@@ -128,6 +128,20 @@ ResumeIQ takes document privacy seriously.
 - Files are parsed directly into memory via `Buffer` and are **never saved to disk**.
 - Pre-processing aggressively redacts potential prompt-injection strings before data ever reaches the LLM.
 
+## 🤝 Contributing
+
+We welcome contributions from the community to make ResumeIQ the ultimate open-source career tool! 
+
+Whether it's adding new target roles, improving the AI prompt logic, or squashing bugs, your help is appreciated.
+
+1. **Fork the repository**
+2. **Create your feature branch:** `git checkout -b feat/amazing-feature`
+3. **Commit your changes:** `git commit -m 'feat: add some amazing feature'`
+4. **Push to the branch:** `git push origin feat/amazing-feature`
+5. **Open a Pull Request**
+
+Please make sure to run the test suite (`npm run test`) before submitting your PR to ensure the core parsing logic remains stable!
+
 ---
 <div align="center">
   <i>Built with precision for engineers, by engineers.</i>
