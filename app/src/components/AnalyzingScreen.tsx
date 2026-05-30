@@ -90,7 +90,7 @@ export default function AnalyzingScreen({ fileName }: Props) {
             border: "2px solid rgba(200,245,60,0.12)",
             borderTopColor: "var(--rs-accent)",
             borderRadius: "50%",
-            animation: "spin 1s linear infinite",
+            animation: "spin-custom 1s linear infinite",
           }}
         />
 

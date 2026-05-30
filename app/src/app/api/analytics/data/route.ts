@@ -1,11 +1,20 @@
 import { NextResponse } from "next/server";
 import { promises as fs } from "fs";
 import path from "path";
+import os from "os";
 import { AnalyticsEvent } from "@/lib/analytics";
+
+function getDataPath(): string {
+  // Fallback to /tmp in serverless/production to prevent EROFS (Read-only file system)
+  if (process.env.VERCEL || process.env.NODE_ENV === "production" || process.env.LAMBDA_TASK_ROOT) {
+    return path.join(os.tmpdir(), "events.json");
+  }
+  return path.join(process.cwd(), "data", "events.json");
+}
 
 export async function GET() {
   try {
-    const dataPath = path.join(process.cwd(), "data", "events.json");
+    const dataPath = getDataPath();
     let events: AnalyticsEvent[] = [];
     
     try {
