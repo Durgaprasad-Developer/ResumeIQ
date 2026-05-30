@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { track } from "@/lib/analytics";
 
 interface Props {
   fileName: string;
@@ -28,6 +29,7 @@ export default function RoleSelectionScreen({ fileName, onConfirmRole, onCancel 
   const handleConfirm = () => {
     const finalRole = isCustom ? customRole.trim() : selectedRole;
     if (!finalRole) return;
+    track("analysis_started", { role: finalRole });
     onConfirmRole(finalRole);
   };
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, DragEvent, ChangeEvent } from "react";
+import { track } from "@/lib/analytics";
 
 interface Props {
   onAnalyze: (file: File) => void;
@@ -53,6 +54,7 @@ export default function LandingScreen({ onAnalyze, error, setError }: Props) {
       }
       setError("");
       setFile(f);
+      track("resume_uploaded", { fileType: f.type, fileSize: f.size });
     },
     [validateFile, setError]
   );
@@ -194,7 +196,10 @@ export default function LandingScreen({ onAnalyze, error, setError }: Props) {
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
-            onClick={() => inputRef.current?.click()}
+            onClick={() => {
+              track("resume_upload_started");
+              inputRef.current?.click();
+            }}
             className="relative rounded-2xl text-center cursor-pointer mb-4 transition-all duration-200"
             style={{
               border: `1.5px dashed ${dragging ? "var(--rs-accent)" : "rgba(200,245,60,0.3)"}`,

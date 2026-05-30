@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { AnalysisResult } from "@/types/analysis";
+import { track } from "@/lib/analytics";
 import LandingScreen from "@/components/LandingScreen";
 import RoleSelectionScreen from "@/components/RoleSelectionScreen";
 import AnalyzingScreen from "@/components/AnalyzingScreen";
@@ -16,6 +17,10 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [targetRole, setTargetRole] = useState<string>("");
   const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    track("landing_page_viewed");
+  }, []);
 
   // Landing screen calls this when file is dropped
   const handleFileDrop = useCallback((selectedFile: File) => {
@@ -48,15 +53,21 @@ export default function Home() {
       const json = await res.json();
 
       if (!json.success) {
+        track("analysis_failed", { reason: json.error ?? "Unknown error" });
         setError(json.error ?? "Analysis failed. Please try again.");
         setScreen("landing");
         return;
       }
 
+      track("analysis_completed", { 
+        overallScore: json.data.overallScore,
+        targetRole: role
+      });
       setResults(json.data);
       setScreen("results");
     } catch (err: unknown) {
       if (err instanceof Error && err.name === "AbortError") return;
+      track("analysis_failed", { reason: "Network error" });
       setError("Network error. Please check your connection and try again.");
       setScreen("landing");
     }

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { AnalysisResult } from "@/types/analysis";
+import { track } from "@/lib/analytics";
 
 interface Props {
   data: AnalysisResult;
@@ -56,6 +57,8 @@ export default function ResultsScreen({ data, targetRole, onReset }: Props) {
   const barsRef = useRef<HTMLDivElement[]>([]);
 
   useEffect(() => {
+    track("results_viewed", { overallScore: data.overallScore, targetRole });
+    
     const t = setTimeout(() => {
       barsRef.current.forEach((el) => {
         if (el) {
@@ -65,7 +68,7 @@ export default function ResultsScreen({ data, targetRole, onReset }: Props) {
       });
     }, 150);
     return () => clearTimeout(t);
-  }, []);
+  }, [data.overallScore, targetRole]);
 
   return (
     <div
@@ -105,7 +108,10 @@ export default function ResultsScreen({ data, targetRole, onReset }: Props) {
           </div>
           <button
             id="new-resume-btn"
-            onClick={onReset}
+            onClick={() => {
+              track("analyze_another_resume", { location: "header" });
+              onReset();
+            }}
             className="font-dm-mono text-xs rounded-lg px-3 py-2 transition-all duration-150"
             style={{
               color: "rgba(250,250,248,0.5)",
@@ -293,7 +299,10 @@ export default function ResultsScreen({ data, targetRole, onReset }: Props) {
         {/* Analyze another */}
         <div className="text-center pt-8 pb-10">
           <button
-            onClick={onReset}
+            onClick={() => {
+              track("analyze_another_resume", { location: "bottom" });
+              onReset();
+            }}
             className="font-syne font-bold rounded-xl px-8 py-3 transition-all duration-150"
             style={{ background: "var(--rs-accent)", color: "var(--rs-black)", fontSize: "0.9rem" }}
             onMouseEnter={(e) => {
